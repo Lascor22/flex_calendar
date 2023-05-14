@@ -27,6 +27,7 @@ def logInfo(message):
 bot = telebot.TeleBot(os.getenv('API_TELEGRAM_TOKEN'))
 
 user_data = {}
+last_events = {}
 
 
 # Command to start the bot
@@ -63,25 +64,29 @@ def new_event(message):
 
 def get_event_name(message):
     try:
+        last_events[message.chat.id] = {'name': message.text}
         # Ask the user for the date of the event
         bot.send_message(message.chat.id, 'What is the date of the event? (dd/mm/yyyy)')
-        bot.register_next_step_handler(message, get_event_date, message.text)
+        bot.register_next_step_handler(message, get_event_date)
     except Exception:
         logError(sys.exc_info()[1])
 
 
-def get_event_date(message, event_text):
+def get_event_date(message):
     try:
         # Convert the user input to a datetime object
         event_date = datetime.strptime(message.text, '%d/%m/%Y')
         # Store the event date in user data
-        new_event = {}
-        new_event['date'] = event_date
-        new_event['name'] = event_text
+        current_event = last_events.get(message.chat.id, {})
+        if not current_event:
+            # TODO: log error.
+            return
+        current_event['date'] = event_date
         events = user_data[message.chat.id].get('events', [])
-        events.append(new_event)
+        events.append(dict(current_event))
         user_data[message.chat.id]['events'] = events
         # Send a confirmation message to the user
+        event_text = current_event['name']
         bot.send_message(message.chat.id, f'Event "{event_text}" added to the calendar on {event_date.strftime("%d/%m/%Y")}.')
     except ValueError:
         # Send an error message to the user if the input is not a valid date
