@@ -28,6 +28,7 @@ bot = telebot.TeleBot(os.getenv('API_TELEGRAM_TOKEN'))
 
 user_data = {}
 
+
 # Command to start the bot
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -41,11 +42,13 @@ def start(message):
     except Exception:
         logError(sys.exc_info()[1])
 
+
 # Command to display the available commands
 @bot.message_handler(commands=['help'])
 def help(message):
     # Send a list of available commands to the user
     bot.send_message(message.chat.id, 'Available commands:\n/new_event - add a new event to the calendar\n/view_events - view all events in the calendar')
+
 
 # Command to add a new event to the calendar
 @bot.message_handler(commands=['new_event'])
@@ -65,6 +68,7 @@ def get_event_name(message):
         bot.register_next_step_handler(message, get_event_date, message.text)
     except Exception:
         logError(sys.exc_info()[1])
+
 
 def get_event_date(message, event_text):
     try:
@@ -87,6 +91,7 @@ def get_event_date(message, event_text):
     except Exception:
         logError(sys.exc_info()[1])
 
+
 # Command to view all events in the calendar
 @bot.message_handler(commands=['view_events'])
 def view_events(message):
@@ -101,6 +106,7 @@ def view_events(message):
             bot.send_message(message.chat.id, f'Events in the calendar:\n{event_list}')
     except Exception:
         logError(sys.exc_info()[1])
+
 
 # Start the bot
 bot.polling()
