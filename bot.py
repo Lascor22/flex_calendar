@@ -4,18 +4,20 @@ import sys
 import argparse
 import time
 from datetime import datetime
-from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 
+from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 import telebot
 
 from utils.RemoteLogging.Endpoints.ResponseEvaluationTimeMetricsEndpoint import ResponseEvaluationTimeMetricsEndpoint
 from utils.RemoteLogging.MetricsLogger import MetricsLogger
+from storage.sqlite import SQLiteStorage
 
 parser = argparse.ArgumentParser(
     prog='flex_calendar_bot',
     description='Flex calendar telegram bot'
 )
 parser.add_argument('--log_file', type=str, default='logs.txt', help='file for logs')
+parser.add_argument('--database', type=str, default='calendar.db', help='database file path')
 args = parser.parse_args()
 logging.basicConfig(filename=args.log_file, encoding='utf-8', level=logging.DEBUG)
 
@@ -33,7 +35,9 @@ def logInfo(message):
 
 bot = telebot.TeleBot(os.getenv('API_TELEGRAM_TOKEN'))
 
-user_data = {}
+
+storage = SQLiteStorage(storage_file=args.database)
+
 last_events = {}
 
 
@@ -44,10 +48,9 @@ def start(message):
         response_eval_time_endpoint = ResponseEvaluationTimeMetricsEndpoint()
         response_eval_time_endpoint.track_start()
 
-        if message.chat.id not in user_data:
-            user_data[message.chat.id] = {}
-            user_data[message.chat.id]['events'] = []
-            logInfo(f'New user: id: {message.from_user.id}, username: {message.from_user.username}')
+        user_id = message.chat.id
+        if not storage.is_known_user(user_id):
+            logInfo(f'New user: id: {user_id}, username: {message.from_user.username}')
         # Send a welcome message to the user
         bot.send_message(message.chat.id, 'Welcome to the Calendar Bot!\nType /help to see the available commands.')
 
@@ -115,9 +118,7 @@ def get_event_date(c):
                 bot.send_message(c.message.chat.id, 'Something went wrong, try to start again.')
                 return
             current_event['date'] = event_date
-            events = user_data[c.message.chat.id].get('events', [])
-            events.append(dict(current_event))
-            user_data[c.message.chat.id]['events'] = events
+            storage.save_event(c.message.chat.id, dict(current_event))
             # Send a confirmation message to the user
             event_text = current_event['name']
             bot.edit_message_text(f'Event "{event_text}" added to the calendar on {event_date.strftime("%d/%m/%Y")}.',
@@ -134,13 +135,13 @@ def view_events(message):
         response_eval_time_endpoint = ResponseEvaluationTimeMetricsEndpoint()
         response_eval_time_endpoint.track_start()
 
-        events = user_data.get(message.chat.id, {}).get('events', [])
+        events = storage.get_user_events(message.chat.id)
         if not events:
             # Send a message to the user if there are no events in the calendar
             bot.send_message(message.chat.id, 'There are no events in the calendar.')
         else:
             # Send a list of events to the user
-            event_list = '\n'.join([f'"{event["name"]}" on {event["date"].strftime("%d/%m/%Y")}' for event in events])
+            event_list = '\n'.join([f'"{event[0]}" on {event[1]}' for event in events])
             bot.send_message(message.chat.id, f'Events in the calendar:\n{event_list}')
 
         response_eval_time_endpoint.track_finish()
