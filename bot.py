@@ -17,6 +17,7 @@ logger = args.log_file
 def getDate():
     # format: y-m-d h:m:s:ms
     return str(datetime.now())[:23]
+
 def logError(message):
     logger.write(f'E[{getDate()}] {message}\n')
 
