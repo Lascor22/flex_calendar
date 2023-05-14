@@ -2,7 +2,6 @@ import logging
 import os
 import sys
 import argparse
-import time
 from datetime import datetime
 
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
