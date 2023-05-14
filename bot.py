@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import argparse
@@ -13,10 +14,10 @@ parser = argparse.ArgumentParser(
     prog='flex_calendar_bot',
     description='Flex calendar telegram bot'
 )
-parser.add_argument('--log_file', type=argparse.FileType('w'), default='-', help='file for logs')
+parser.add_argument('--log_file', type=str, default='logs.txt', help='file for logs')
 args = parser.parse_args()
+logging.basicConfig(filename=args.log_file, encoding='utf-8', level=logging.DEBUG)
 
-logger = args.log_file
 metricsLogger = MetricsLogger()
 
 def getDate():
@@ -24,10 +25,10 @@ def getDate():
     return str(datetime.now())[:23]
 
 def logError(message):
-    logger.write(f'E[{getDate()}] {message}\n')
+    logging.error(f'[{getDate()}] {message}')
 
 def logInfo(message):
-    logger.write(f'I[{getDate()}] {message}\n')
+    logging.info(f'[{getDate()}] {message}\n')
 
 bot = telebot.TeleBot(os.getenv('API_TELEGRAM_TOKEN'))
 
