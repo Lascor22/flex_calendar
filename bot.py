@@ -1,29 +1,35 @@
+import logging
 import os
 import sys
 import argparse
+import time
 from datetime import datetime
 from telegram_bot_calendar import DetailedTelegramCalendar, LSTEP
 
 import telebot
 
+from utils.RemoteLogging.Endpoints.ResponseEvaluationTimeMetricsEndpoint import ResponseEvaluationTimeMetricsEndpoint
+from utils.RemoteLogging.MetricsLogger import MetricsLogger
+
 parser = argparse.ArgumentParser(
     prog='flex_calendar_bot',
     description='Flex calendar telegram bot'
 )
-parser.add_argument('--log_file', type=argparse.FileType('w'), default='-', help='file for logs')
+parser.add_argument('--log_file', type=str, default='logs.txt', help='file for logs')
 args = parser.parse_args()
+logging.basicConfig(filename=args.log_file, encoding='utf-8', level=logging.DEBUG)
 
-logger = args.log_file
+metricsLogger = MetricsLogger()
 
 def getDate():
     # format: y-m-d h:m:s:ms
     return str(datetime.now())[:23]
 
 def logError(message):
-    logger.write(f'E[{getDate()}] {message}\n')
+    logging.error(f'[{getDate()}] {message}')
 
 def logInfo(message):
-    logger.write(f'I[{getDate()}] {message}\n')
+    logging.info(f'[{getDate()}] {message}\n')
 
 bot = telebot.TeleBot(os.getenv('API_TELEGRAM_TOKEN'))
 
@@ -35,12 +41,18 @@ last_events = {}
 @bot.message_handler(commands=['start'])
 def start(message):
     try:
+        response_eval_time_endpoint = ResponseEvaluationTimeMetricsEndpoint()
+        response_eval_time_endpoint.track_start()
+
         if message.chat.id not in user_data:
             user_data[message.chat.id] = {}
             user_data[message.chat.id]['events'] = []
             logInfo(f'New user: id: {message.from_user.id}, username: {message.from_user.username}')
         # Send a welcome message to the user
         bot.send_message(message.chat.id, 'Welcome to the Calendar Bot!\nType /help to see the available commands.')
+
+        response_eval_time_endpoint.track_finish()
+        metricsLogger.sendLogs(to_endpoint=response_eval_time_endpoint)
     except Exception:
         logError(sys.exc_info()[1])
 
@@ -48,17 +60,28 @@ def start(message):
 # Command to display the available commands
 @bot.message_handler(commands=['help'])
 def help(message):
+    response_eval_time_endpoint = ResponseEvaluationTimeMetricsEndpoint()
+    response_eval_time_endpoint.track_start()
+
     # Send a list of available commands to the user
     bot.send_message(message.chat.id, 'Available commands:\n/new_event - add a new event to the calendar\n/view_events - view all events in the calendar')
 
+    response_eval_time_endpoint.track_finish()
+    metricsLogger.sendLogs(to_endpoint=response_eval_time_endpoint)
 
 # Command to add a new event to the calendar
 @bot.message_handler(commands=['new_event'])
 def new_event(message):
     try:
+        response_eval_time_endpoint = ResponseEvaluationTimeMetricsEndpoint()
+        response_eval_time_endpoint.track_start()
+
         # Ask the user for the event name and date
         bot.send_message(message.chat.id, 'What is the name of the event?')
         bot.register_next_step_handler(message, get_event_name)
+
+        response_eval_time_endpoint.track_finish()
+        metricsLogger.sendLogs(to_endpoint=response_eval_time_endpoint)
     except Exception:
         logError(sys.exc_info()[1])
 
@@ -108,6 +131,9 @@ def get_event_date(c):
 @bot.message_handler(commands=['view_events'])
 def view_events(message):
     try:
+        response_eval_time_endpoint = ResponseEvaluationTimeMetricsEndpoint()
+        response_eval_time_endpoint.track_start()
+
         events = user_data.get(message.chat.id, {}).get('events', [])
         if not events:
             # Send a message to the user if there are no events in the calendar
@@ -116,6 +142,9 @@ def view_events(message):
             # Send a list of events to the user
             event_list = '\n'.join([f'"{event["name"]}" on {event["date"].strftime("%d/%m/%Y")}' for event in events])
             bot.send_message(message.chat.id, f'Events in the calendar:\n{event_list}')
+
+        response_eval_time_endpoint.track_finish()
+        metricsLogger.sendLogs(to_endpoint=response_eval_time_endpoint)
     except Exception:
         logError(sys.exc_info()[1])
 
