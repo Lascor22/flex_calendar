@@ -1,8 +1,27 @@
 import os
 import sys
+import argparse
 from datetime import datetime
 
 import telebot
+
+parser = argparse.ArgumentParser(
+    prog='flex_calendar_bot',
+    description='Flex calendar telegram bot'
+)
+parser.add_argument('--log_file', type=argparse.FileType('w'), default='-', help='file for logs')
+args = parser.parse_args()
+
+logger = args.log_file
+
+def getDate():
+    # format: y-m-d h:m:s:ms
+    return str(datetime.now())[:23]
+def logError(message):
+    logger.write(f'E[{getDate()}] {message}\n')
+
+def logInfo(message):
+    logger.write(f'I[{getDate()}] {message}\n')
 
 bot = telebot.TeleBot(os.getenv('API_TELEGRAM_TOKEN'))
 
@@ -15,11 +34,11 @@ def start(message):
         if message.chat.id not in user_data:
             user_data[message.chat.id] = {}
             user_data[message.chat.id]['events'] = []
-            print(f'[{datetime.now()}] New user:\nid: {message.from_user.id}\nusername: {message.from_user.username}\n')
+            logInfo(f'New user: id: {message.from_user.id}, username: {message.from_user.username}')
         # Send a welcome message to the user
-        bot.send_message(message.chat.id, 'Welcome to the Calendar Bot! Type /help to see the available commands.')
+        bot.send_message(message.chat.id, 'Welcome to the Calendar Bot!\nType /help to see the available commands.')
     except Exception:
-        print(f'[{datetime.now()}] {sys.exc_info()[1]}')
+        logError(sys.exc_info()[1])
 
 # Command to display the available commands
 @bot.message_handler(commands=['help'])
@@ -35,7 +54,7 @@ def new_event(message):
         bot.send_message(message.chat.id, 'What is the name of the event?')
         bot.register_next_step_handler(message, get_event_name)
     except Exception:
-        print(sys.exc_info()[1])
+        logError(sys.exc_info()[1])
 
 
 def get_event_name(message):
@@ -44,7 +63,7 @@ def get_event_name(message):
         bot.send_message(message.chat.id, 'What is the date of the event? (dd/mm/yyyy)')
         bot.register_next_step_handler(message, get_event_date, message.text)
     except Exception:
-        print(f'[{datetime.now()}] {sys.exc_info()[1]}')
+        logError(sys.exc_info()[1])
 
 def get_event_date(message, event_text):
     try:
@@ -64,6 +83,8 @@ def get_event_date(message, event_text):
         bot.send_message(message.chat.id, 'Invalid date format. Please enter the date in dd/mm/yyyy format.')
         # Ask the user for the date again
         bot.register_next_step_handler(message, get_event_date)
+    except Exception:
+        logError(sys.exc_info()[1])
 
 # Command to view all events in the calendar
 @bot.message_handler(commands=['view_events'])
@@ -78,7 +99,7 @@ def view_events(message):
             event_list = '\n'.join([f'"{event["name"]}" on {event["date"].strftime("%d/%m/%Y")}' for event in events])
             bot.send_message(message.chat.id, f'Events in the calendar:\n{event_list}')
     except Exception:
-        print(f'[{datetime.now()}] {sys.exc_info()[1]}')
+        logError(sys.exc_info()[1])
 
 # Start the bot
 bot.polling()
