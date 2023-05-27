@@ -50,7 +50,8 @@ class SQLiteStorage(BaseStorage):
 
     def __init__(self, storage_file):
         self.connection = sqlite3.connect(storage_file, timeout=5.0, detect_types=0, isolation_level='EXCLUSIVE',
-                                          check_same_thread=False, factory=sqlite3.Connection, cached_statements=128, uri=False)
+                                          check_same_thread=False, factory=sqlite3.Connection, cached_statements=128,
+                                          uri=False)
         self.cursor = self.connection.cursor()
         tables = self.cursor.execute(check_empty_sql).fetchall()
         # database update scenario logic
