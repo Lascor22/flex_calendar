@@ -15,4 +15,4 @@ class HelpHandler(BaseHandlerWithLogger):
         # Send a list of available commands to the user
         self.bot.send_message(message.chat.id,
                               'Available commands:\n/new_event - add a new event to the calendar\n/view_events - view '
-                              'all events in the calendar')
+                              'all events in the calendar\n/prev_events - old events from calendar\n/next_events - upcoming events\n/delete_events - delete events')
