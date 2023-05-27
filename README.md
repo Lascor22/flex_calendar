@@ -1,8 +1,9 @@
 ## Телеграм бот "Гибкий календарь"
-
+[![Basic validation](https://github.com/actions/labeler/actions/workflows/basic-validation.yml/badge.svg?branch=main)](https://github.com/Lascor22/flex_calendar/actions/workflows/python-app.yml)
 ### Использование
 Гибкий календарь позволит вам структурировать все ваши дела в календаре.  
 Он позволяет создавать, удалять и смотреть события, а также соотносить их с календарем.  
+Ссылка на бот: https://t.me/flexCalendarBot
 
 ### Установка
 1. Скачиваем Python https://www.python.org/downloads/
