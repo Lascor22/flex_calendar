@@ -5,6 +5,7 @@ import argparse
 from telegram_bot_calendar import DetailedTelegramCalendar
 import telebot
 
+from handlers.DeleteEventsHandler import DeleteEventsHandler
 from handlers.EventDateHandler import EventDateHandler
 from handlers.HelpHandler import HelpHandler
 from handlers.NewEventHandler import NewEventHandler
@@ -74,6 +75,10 @@ def prev_events(message):
 def next_events(message):
     NextEventsHandler(bot, storage, log_helper, metrics_logger).handle(message)
 
+
+@bot.message_handler(commands=['delete_events'])
+def delete_events(message):
+    DeleteEventsHandler(bot, storage, log_helper, metrics_logger).handle(message)
 
 # Start the bot
 bot.polling()
