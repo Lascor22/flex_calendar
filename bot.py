@@ -8,6 +8,8 @@ import telebot
 from handlers.EventDateHandler import EventDateHandler
 from handlers.HelpHandler import HelpHandler
 from handlers.NewEventHandler import NewEventHandler
+from handlers.NextEventsHandler import NextEventsHandler
+from handlers.PrevEventsHandler import PrevEventsHandler
 from handlers.StartHandler import StartHandler
 from handlers.ViewEventsHandler import ViewEventsHandler
 from utils.LogHelper import LogHelper
@@ -61,6 +63,16 @@ def get_event_date(c):
 @bot.message_handler(commands=['view_events'])
 def view_events(message):
     ViewEventsHandler(bot, storage, log_helper, metrics_logger).handle(message)
+
+
+@bot.message_handler(commands=['prev_events'])
+def prev_events(message):
+    PrevEventsHandler(bot, storage, log_helper, metrics_logger).handle(message)
+
+
+@bot.message_handler(commands=['next_events'])
+def next_events(message):
+    NextEventsHandler(bot, storage, log_helper, metrics_logger).handle(message)
 
 
 # Start the bot
