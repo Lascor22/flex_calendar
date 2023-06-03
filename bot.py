@@ -24,7 +24,6 @@ def set_prod_environment() -> Application:
 
     metrics_logger = MetricsLogger()
     log_helper = LogHelper()
-
     bot = telebot.TeleBot(os.getenv('API_TELEGRAM_TOKEN'))
 
     storage = SQLiteStorage(storage_file=args.database)

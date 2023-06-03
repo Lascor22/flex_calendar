@@ -7,6 +7,11 @@ from utils.LogHelper import LogHelper
 from utils.RemoteLogging.MetricsLogger import MetricsLogger
 
 
+def events_string(events):
+    event_list = '\n'.join([f'"{event[0]}" on {event[1]}' for event in events])
+    return f'Events in the calendar:\n{event_list}'
+
+
 class ViewEventsHandler(BaseHandlerWithLogger):
     def __init__(self, bot: TeleBot, storage: BaseStorage, log_helper: LogHelper, metrics_logger: MetricsLogger):
         super().__init__(log_helper, metrics_logger)
@@ -20,5 +25,4 @@ class ViewEventsHandler(BaseHandlerWithLogger):
             self.bot.send_message(message.chat.id, 'There are no events in the calendar.')
         else:
             # Send a list of events to the user
-            event_list = '\n'.join([f'"{event[0]}" on {event[1]}' for event in events])
-            self.bot.send_message(message.chat.id, f'Events in the calendar:\n{event_list}')
+            self.bot.send_message(message.chat.id, events_string(events))
