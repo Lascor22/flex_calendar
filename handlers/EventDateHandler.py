@@ -12,6 +12,10 @@ from utils.LogHelper import LogHelper
 from utils.RemoteLogging.MetricsLogger import MetricsLogger
 
 
+def event_added_string(event_text: str, event_date: date):
+    return f'Event "{event_text}" added to the calendar on {event_date.strftime("%d/%m/%Y")}.'
+
+
 class EventDateHandler(BaseHandlerWithLogger):
     def __init__(self,
                  bot: TeleBot,
@@ -49,6 +53,6 @@ class EventDateHandler(BaseHandlerWithLogger):
             # Send a confirmation message to the user
             event_text = current_event['name']
             self.bot.edit_message_text(
-                f'Event "{event_text}" added to the calendar on {self.event_date.strftime("%d/%m/%Y")}.',
+                event_added_string(event_text, self.event_date),
                 message.chat.id,
                 message.message_id)
