@@ -8,7 +8,7 @@ class BaseStorage:
     def get_user_events(self, user_id):
         pass
 
-    def delete_event(self, user_id, event):
+    def delete_event(self, user_id, event_id):
         pass
 
     def close(self):

@@ -24,7 +24,10 @@ class FlexCalendarCustomSender:
         self.post_responses = []
 
     def map_request(self, method, url, **kwargs):
-        if method == 'get' and url.endswith('getMe'):
+        if url.endswith('setMyCommands') or url.endswith('setChatMenuButton'):
+            result = util.CustomRequestResponse(DEFAULT_RESPONSE)
+            return result
+        elif method == 'get' and url.endswith('getMe'):
             result = util.CustomRequestResponse(GET_ME_RESPONSE)
             return result
         elif method == 'post':

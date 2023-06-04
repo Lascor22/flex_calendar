@@ -25,8 +25,8 @@ def assert_messages(responses: list):
     assert 'Select year' == responses[3]['params']['text']
     assert 'Select month' == responses[4]['params']['text']
     assert 'Select day' == responses[5]['params']['text']
-    event = ("new event", datetime.date(2023, 5, 31))
-    assert event_added_string(event[0], event[1]) == responses[6]['params']['text']
+    event = (None, "new event", datetime.date(2023, 5, 31))
+    assert event_added_string(event[1], event[2]) == responses[6]['params']['text']
     events = [event]
     assert events_string(events) == responses[7]['params']['text']
     assert len(responses) == 8
@@ -38,14 +38,6 @@ def app_setup(request):
     last_events = {}
     storage = SQLiteStorage(file_path)
     bot = telebot.TeleBot("test")
-    test_app = Application(
-        Mock(),
-        Mock(),
-        storage,
-        last_events,
-        StubCurrentDateProvider(datetime.date(2023, 6, 3)),
-        bot,
-    )
 
     def on_finish(post_responses: list):
         assert_messages(post_responses)
@@ -55,6 +47,15 @@ def app_setup(request):
 
     custom_sender = FlexCalendarCustomSender(on_finish)
     apihelper.CUSTOM_REQUEST_SENDER = custom_sender.map_request
+
+    test_app = Application(
+        Mock(),
+        Mock(),
+        storage,
+        last_events,
+        StubCurrentDateProvider(datetime.date(2023, 6, 3)),
+        bot,
+    )
 
     return test_app
 

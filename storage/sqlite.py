@@ -41,9 +41,9 @@ select_user_event_count_sql = 'select count(id) as event_count from events where
 
 insert_event_sql = 'insert into events(user_id, name, date) values(:user_id, :name, :date)'
 
-select_user_events_sql = 'select name, date from events where user_id = :user_id'
+select_user_events_sql = 'select id, name, date from events where user_id = :user_id'
 
-delete_user_event_sql = 'delete from events where user_id = :user_id and name = :event_name and date = :event_date'
+delete_user_event_sql = 'delete from events where user_id = :user_id and id = :event_id'
 
 
 class SQLiteStorage(BaseStorage):
@@ -80,8 +80,8 @@ class SQLiteStorage(BaseStorage):
     def get_user_events(self, user_id):
         return self.cursor.execute(select_user_events_sql, {'user_id': user_id}).fetchall()
 
-    def delete_event(self, user_id, event):
-        return self.cursor.execute(delete_user_event_sql, {'user_id': user_id, 'event_name': event[0], 'event_date': event[1]})
+    def delete_event(self, user_id, event_id):
+        return self.cursor.execute(delete_user_event_sql, {'user_id': user_id, 'event_id': event_id})
 
     def close(self):
         self.cursor.close()

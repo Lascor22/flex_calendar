@@ -1,10 +1,21 @@
 from telebot import TeleBot
-from telebot.types import Message
+from telebot.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 
 from handlers.BaseHandlerWithLogger import BaseHandlerWithLogger
+from handlers.DeleteEventClickHandler import DELETE_PREFIX
 from storage.storage import BaseStorage
 from utils.LogHelper import LogHelper
 from utils.RemoteLogging.MetricsLogger import MetricsLogger
+
+
+def prepare_delete_markup(events) -> InlineKeyboardMarkup:
+    markup = InlineKeyboardMarkup(row_width=1)
+    buttons = []
+    for event in events:
+        button = InlineKeyboardButton(text=f'❌ - "{event[1]}" on {event[2]}', callback_data=DELETE_PREFIX + str(event[0]))
+        buttons.append(button)
+    markup.add(*buttons)
+    return markup
 
 
 class DeleteEventsHandler(BaseHandlerWithLogger):
@@ -23,23 +34,6 @@ class DeleteEventsHandler(BaseHandlerWithLogger):
             self.bot.send_message(message.chat.id, 'There are no events in the calendar.')
         else:
             # Send a list of events to the user
-            event_list = '\n'.join([f'"{i}: {event[0]}" on {event[1]}' for i, event in enumerate(events)])
-            self.bot.send_message(message.chat.id, f'Events in the calendar:\n{event_list}')
-            self.bot.send_message(message.chat.id, f'Please, type id of event you\'d like to delete')
-
-            self.bot.register_next_step_handler(message, self.read_delete_event_id)
-
-    def read_delete_event_id(self, message: Message):
-        try:
-            id_to_delete = int(message.text)
-
-            if 0 <= id_to_delete < len(self.cached_events):
-                event = self.cached_events[id_to_delete]
-                self.storage.delete_event(message.chat.id, self.cached_events[id_to_delete])
-                self.bot.send_message(message.chat.id, f'Successfully deleted event {event[0]}" on {event[1]}')
-            else:
-                self.log_helper.log_info(f"Attempt to enter wrong int value {message.text}")
-                self.bot.send_message(message.chat.id, f'Please, type correct integer value')
-        except ValueError:
-            self.log_helper.log_info(f"Attempt to enter wrong int value {message.text}")
-            self.bot.send_message(message.chat.id, f'Please, type correct integer value')
+            markup = prepare_delete_markup(events)
+            self.bot.send_message(message.chat.id, f'Select event you want to delete:',
+                                  reply_markup=markup)

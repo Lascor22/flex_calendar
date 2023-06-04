@@ -1,7 +1,9 @@
 from telebot import TeleBot
+from telebot.types import BotCommand, MenuButtonCommands
 from telegram_bot_calendar import DetailedTelegramCalendar
 
 from date.CurrentDateProvider import CurrentDateProvider
+from handlers.DeleteEventClickHandler import filter_func, DeleteEventClickHandler, parse_event_id
 from handlers.DeleteEventsHandler import DeleteEventsHandler
 from handlers.EventDateHandler import EventDateHandler
 from handlers.HelpHandler import HelpHandler
@@ -30,6 +32,16 @@ class Application:
         self.last_events = last_events
         self.current_date_provider = current_date_provider
         self.bot = bot
+        self.bot.set_my_commands([
+            BotCommand("start", "Starts the bot"),
+            BotCommand("help", "Displays available commands"),
+            BotCommand("new_event", "Adds a new event to calendar"),
+            BotCommand("view_events", "All events in calendar"),
+            BotCommand("prev_events", "Previous to current date events"),
+            BotCommand("next_events", "Next to current date events"),
+            BotCommand("delete_events", "Deletable calendar events"),
+        ])
+        self.bot.set_chat_menu_button(chat_id=None, menu_button=MenuButtonCommands("commands"))
         self.bot.register_message_handler(callback=self.start, commands=['start'])
         self.bot.register_message_handler(callback=self.help, commands=['help'])
         self.bot.register_message_handler(callback=self.new_event, commands=['new_event'])
@@ -37,6 +49,7 @@ class Application:
         self.bot.register_message_handler(callback=self.prev_events, commands=['prev_events'])
         self.bot.register_message_handler(callback=self.next_events, commands=['next_events'])
         self.bot.register_message_handler(callback=self.delete_events, commands=['delete_events'])
+        self.bot.register_callback_query_handler(callback=self.delete_event, func=filter_func)
         self.bot.register_callback_query_handler(callback=self.get_event_date, func=DetailedTelegramCalendar.func())
 
     # Command to start the bot
@@ -77,3 +90,14 @@ class Application:
 
     def delete_events(self, message):
         DeleteEventsHandler(self.bot, self.storage, self.log_helper, self.metrics_logger).handle(message)
+
+    def delete_event(self, c):
+        event_id = parse_event_id(c)
+        if event_id:
+            DeleteEventClickHandler(
+                self.bot,
+                self.storage,
+                self.log_helper,
+                self.metrics_logger,
+                event_id,
+            ).handle(c.message)

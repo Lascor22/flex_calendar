@@ -8,7 +8,7 @@ from utils.RemoteLogging.MetricsLogger import MetricsLogger
 
 
 def events_string(events):
-    event_list = '\n'.join([f'"{event[0]}" on {event[1]}' for event in events])
+    event_list = '\n'.join([f'"{event[1]}" on {event[2]}' for event in events])
     return f'Events in the calendar:\n{event_list}'
 
 
