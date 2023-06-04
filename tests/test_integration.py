@@ -25,8 +25,8 @@ def assert_messages(responses: list):
     assert 'Select year' == responses[3]['params']['text']
     assert 'Select month' == responses[4]['params']['text']
     assert 'Select day' == responses[5]['params']['text']
-    event = ("new event", datetime.date(2023, 5, 31))
-    assert event_added_string(event[0], event[1]) == responses[6]['params']['text']
+    event = (None, "new event", datetime.date(2023, 5, 31))
+    assert event_added_string(event[1], event[2]) == responses[6]['params']['text']
     events = [event]
     assert events_string(events) == responses[7]['params']['text']
     assert len(responses) == 8

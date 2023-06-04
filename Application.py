@@ -3,6 +3,7 @@ from telebot.types import BotCommand, MenuButtonCommands
 from telegram_bot_calendar import DetailedTelegramCalendar
 
 from date.CurrentDateProvider import CurrentDateProvider
+from handlers.DeleteEventClickHandler import filter_func, DeleteEventClickHandler, parse_event_id
 from handlers.DeleteEventsHandler import DeleteEventsHandler
 from handlers.EventDateHandler import EventDateHandler
 from handlers.HelpHandler import HelpHandler
@@ -48,6 +49,7 @@ class Application:
         self.bot.register_message_handler(callback=self.prev_events, commands=['prev_events'])
         self.bot.register_message_handler(callback=self.next_events, commands=['next_events'])
         self.bot.register_message_handler(callback=self.delete_events, commands=['delete_events'])
+        self.bot.register_callback_query_handler(callback=self.delete_event, func=filter_func)
         self.bot.register_callback_query_handler(callback=self.get_event_date, func=DetailedTelegramCalendar.func())
 
     # Command to start the bot
@@ -88,3 +90,14 @@ class Application:
 
     def delete_events(self, message):
         DeleteEventsHandler(self.bot, self.storage, self.log_helper, self.metrics_logger).handle(message)
+
+    def delete_event(self, c):
+        event_id = parse_event_id(c)
+        if event_id:
+            DeleteEventClickHandler(
+                self.bot,
+                self.storage,
+                self.log_helper,
+                self.metrics_logger,
+                event_id,
+            ).handle(c.message)

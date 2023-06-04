@@ -24,11 +24,11 @@ class PrevEventsHandler(BaseHandlerWithLogger):
             now = datetime.datetime.now()
             filtered_events = []
             for event in events:
-                event_date = datetime.datetime.strptime(event[1], '%Y-%m-%d')
+                event_date = datetime.datetime.strptime(event[2], '%Y-%m-%d')
                 if event_date < now:
                     filtered_events.append(event)
 
-            event_list = '\n'.join([f'"{event[0]}" on {event[1]}' for event in filtered_events])
+            event_list = '\n'.join([f'"{event[1]}" on {event[2]}' for event in filtered_events])
 
             if len(filtered_events) == 0:
                 self.bot.send_message(message.chat.id, 'There are no previous events in the calendar.')
