@@ -38,14 +38,6 @@ def app_setup(request):
     last_events = {}
     storage = SQLiteStorage(file_path)
     bot = telebot.TeleBot("test")
-    test_app = Application(
-        Mock(),
-        Mock(),
-        storage,
-        last_events,
-        StubCurrentDateProvider(datetime.date(2023, 6, 3)),
-        bot,
-    )
 
     def on_finish(post_responses: list):
         assert_messages(post_responses)
@@ -55,6 +47,15 @@ def app_setup(request):
 
     custom_sender = FlexCalendarCustomSender(on_finish)
     apihelper.CUSTOM_REQUEST_SENDER = custom_sender.map_request
+
+    test_app = Application(
+        Mock(),
+        Mock(),
+        storage,
+        last_events,
+        StubCurrentDateProvider(datetime.date(2023, 6, 3)),
+        bot,
+    )
 
     return test_app
 

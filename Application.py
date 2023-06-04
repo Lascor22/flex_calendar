@@ -1,4 +1,5 @@
 from telebot import TeleBot
+from telebot.types import BotCommand, MenuButtonCommands
 from telegram_bot_calendar import DetailedTelegramCalendar
 
 from date.CurrentDateProvider import CurrentDateProvider
@@ -30,6 +31,16 @@ class Application:
         self.last_events = last_events
         self.current_date_provider = current_date_provider
         self.bot = bot
+        self.bot.set_my_commands([
+            BotCommand("start", "Starts the bot"),
+            BotCommand("help", "Displays available commands"),
+            BotCommand("new_event", "Adds a new event to calendar"),
+            BotCommand("view_events", "All events in calendar"),
+            BotCommand("prev_events", "Previous to current date events"),
+            BotCommand("next_events", "Next to current date events"),
+            BotCommand("delete_events", "Deletable calendar events"),
+        ])
+        self.bot.set_chat_menu_button(chat_id=None, menu_button=MenuButtonCommands("commands"))
         self.bot.register_message_handler(callback=self.start, commands=['start'])
         self.bot.register_message_handler(callback=self.help, commands=['help'])
         self.bot.register_message_handler(callback=self.new_event, commands=['new_event'])
